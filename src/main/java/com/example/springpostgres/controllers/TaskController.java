@@ -1,40 +1,37 @@
 package com.example.springpostgres.controllers;
 
-import com.example.springpostgres.entities.AccountEntity;
-import com.example.springpostgres.services.AccountService;
-import org.apache.coyote.Response;
+import com.example.springpostgres.entities.TaskEntity;
+import com.example.springpostgres.services.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
 @RestController
-@RequestMapping("/accounts")
+@RequestMapping("/tasks")
 
 /**
  * CRD
  * left: updation
  * refactor to tasks
  */
-public class AccountController {
+public class TaskController {
     @Autowired
-    AccountService accountService;
+    TaskService taskService;
 
     @GetMapping()
     @ResponseBody()
-    public List<AccountEntity> accountEntityList() {
-        return accountService.getAllAccounts();
+    public List<TaskEntity> getTaskEntityList() {
+        return taskService.getAllTasks();
     }
 
     @GetMapping("/filter")
     @ResponseBody()
-    public List<AccountEntity> getAccountsWithUserIdMoreThan(@RequestParam Integer userId) {
+    public List<TaskEntity> getTasksWithUserIdMoreThan(@RequestParam Integer userId) {
         System.out.println("yoooooooooooooooooooooooooooooooo");
-        return accountService.getAccountsWithIdMoreThan(userId);
+        return taskService.getTasksWithIdMoreThan(userId);
     }
 
     /*
@@ -50,16 +47,15 @@ public class AccountController {
     }
 
     @PostMapping("new")
-    public AccountEntity addNewAccount(@RequestBody AccountEntity accountEntity) {
-        System.out.println(accountEntity.getEmail());
-        return accountService.addNewAccount(accountEntity);
+    public TaskEntity addNewTask(@RequestBody TaskEntity taskEntity) {
+        return taskService.addNewTask(taskEntity);
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<AccountEntity> getAccountById(@PathVariable("id") Integer userId) {
-        Optional<AccountEntity> accountEntity = accountService.getAccountById(userId);
-        if (accountEntity.isPresent()) {
-            return new ResponseEntity<>(accountEntity.get(), HttpStatus.OK);
+    public ResponseEntity<TaskEntity> getTaskWithId(@PathVariable("id") Integer userId) {
+        Optional<TaskEntity> taskEntity = taskService.getTaskById(userId);
+        if (taskEntity.isPresent()) {
+            return new ResponseEntity<>(taskEntity.get(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -67,12 +63,12 @@ public class AccountController {
 
     // Return a custom response that deletion unsuccessful because of id not being present
     @DeleteMapping("{id}")
-    public ResponseEntity<Object> deleteAccountById(@PathVariable("id") Integer userId) {
-        Optional<AccountEntity> accountEntity = accountService.getAccountById(userId);
+    public ResponseEntity<Object> deleteTaskWithId(@PathVariable("id") Integer userId) {
+        Optional<TaskEntity> taskEntity = taskService.getTaskById(userId);
         Map<String, Object> resMap = new HashMap<String, Object>();
         HttpStatus httpStatus;
-        if (accountEntity.isPresent()) {
-            accountService.deleteAccountById(userId);
+        if (taskEntity.isPresent()) {
+            taskService.deleteTaskById(userId);
             resMap.put("deletion_status", "Success");
             resMap.put("deleted_user_id", userId);
             httpStatus = HttpStatus.OK;
@@ -86,12 +82,12 @@ public class AccountController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<Object> updateAccountById(@PathVariable("id") Integer userId, @RequestBody AccountEntity accountEntity) {
-        Optional<AccountEntity> accountEntityOptional = accountService.getAccountById(userId);
+    public ResponseEntity<Object> updateTaskWithId(@PathVariable("id") Integer userId, @RequestBody TaskEntity taskEntity) {
+        Optional<TaskEntity> taskEntityOptional = taskService.getTaskById(userId);
         Map<String, Object> resMap = new HashMap<>();
         HttpStatus httpStatus;
-        if (accountEntityOptional.isPresent()) {
-            accountService.updateAccountById(accountEntityOptional.get(), accountEntity);
+        if (taskEntityOptional.isPresent()) {
+            taskService.updateTaskWithId(taskEntityOptional.get(), taskEntity);
             resMap.put("update status", "Success");
             resMap.put("updated userId", userId);
             httpStatus = HttpStatus.OK;

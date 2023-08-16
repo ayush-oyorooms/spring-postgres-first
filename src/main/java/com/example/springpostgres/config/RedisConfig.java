@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -59,6 +60,15 @@ public class RedisConfig {
                 .build();
         return redisCacheManager;
 
+    }
+
+    @Bean
+    public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
+        return (builder) -> builder
+                .withCacheConfiguration("taskCache",
+                        RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(10)))
+                .withCacheConfiguration("taskListCache",
+                        RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)));
     }
 
 //    private RedisCacheConfiguration myDefaultCacheConfig(Duration duration) {

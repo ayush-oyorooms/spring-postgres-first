@@ -25,7 +25,6 @@ public class TaskController {
     TaskService taskService;
 
     @GetMapping()
-    @Cacheable(value = "List<TaskEntity>", key = "#root.method.name")
     @ResponseBody()
     public List<TaskEntity> getTaskEntityList() {
         return taskService.getAllTasks();
@@ -56,9 +55,10 @@ public class TaskController {
         return taskService.addNewTask(taskEntity);
     }
 
-    @Cacheable(value = "task", key = "#taskId")
+    @Cacheable(value = "vedansh", key = "#taskId")
     @GetMapping("{id}")
     public ResponseEntity<TaskEntity> getTaskWithId(@PathVariable("id") Integer taskId) {
+        System.out.println("-------------------find--------------");
         Optional<TaskEntity> taskEntity = taskService.getTaskById(taskId);
         if (taskEntity.isPresent()) {
             return new ResponseEntity<>(taskEntity.get(), HttpStatus.OK);
@@ -89,6 +89,7 @@ public class TaskController {
     }
 
     @PutMapping("{id}")
+    @CachePut
     public ResponseEntity<Object> updateTaskWithId(@PathVariable("id") Integer userId, @RequestBody TaskEntity taskEntity) {
         Optional<TaskEntity> taskEntityOptional = taskService.getTaskById(userId);
         Map<String, Object> resMap = new HashMap<>();

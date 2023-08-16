@@ -25,7 +25,7 @@ public class TaskService {
     private TaskRepository taskRepository;
 
 //    public List<TaskEntity> getAllTasks() {
-    @Cacheable(value = "TaskEntity", key = "#root.method.name")
+    @Cacheable(value = "taskCache", key = "#root.method.name")
     public List<TaskEntity> getAllTasks() {
         List<TaskEntity> allTasks = new ArrayList<>();
         taskRepository.findAll().forEach(allTasks::add);
@@ -53,7 +53,6 @@ public class TaskService {
         return taskRepository.save(_taskEntity);
     }
 
-    @Cacheable()
     public Optional<TaskEntity> getTaskById(Integer taskId) {
         return taskRepository.findById(taskId);
     }

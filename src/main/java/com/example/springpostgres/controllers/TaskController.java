@@ -3,6 +3,9 @@ package com.example.springpostgres.controllers;
 import com.example.springpostgres.entities.TaskEntity;
 import com.example.springpostgres.services.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +25,7 @@ public class TaskController {
     TaskService taskService;
 
     @GetMapping()
+    @Cacheable(value = "List<TaskEntity>", key = "#root.method.name")
     @ResponseBody()
     public List<TaskEntity> getTaskEntityList() {
         return taskService.getAllTasks();
@@ -47,13 +51,15 @@ public class TaskController {
     }
 
     @PostMapping("new")
+//    @CachePut(value = "TaskEntity", key = "#taskEntity.taskId")
     public TaskEntity addNewTask(@RequestBody TaskEntity taskEntity) {
         return taskService.addNewTask(taskEntity);
     }
 
+    @Cacheable(value = "task", key = "#taskId")
     @GetMapping("{id}")
-    public ResponseEntity<TaskEntity> getTaskWithId(@PathVariable("id") Integer userId) {
-        Optional<TaskEntity> taskEntity = taskService.getTaskById(userId);
+    public ResponseEntity<TaskEntity> getTaskWithId(@PathVariable("id") Integer taskId) {
+        Optional<TaskEntity> taskEntity = taskService.getTaskById(taskId);
         if (taskEntity.isPresent()) {
             return new ResponseEntity<>(taskEntity.get(), HttpStatus.OK);
         } else {
@@ -62,6 +68,7 @@ public class TaskController {
     }
 
     // Return a custom response that deletion unsuccessful because of id not being present
+    @CacheEvict(value = "tasks", allEntries = true)
     @DeleteMapping("{id}")
     public ResponseEntity<Object> deleteTaskWithId(@PathVariable("id") Integer userId) {
         Optional<TaskEntity> taskEntity = taskService.getTaskById(userId);

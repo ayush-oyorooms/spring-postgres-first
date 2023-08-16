@@ -1,13 +1,17 @@
 package com.example.springpostgres.entities;
 
-import jakarta.persistence.*;
+import lombok.Data;
 
+import javax.persistence.*;
+import java.io.Serializable;
 import java.sql.Date;
 
+//@Data
 @Entity
 @Table(name="Tasks")
 public class TaskEntity {
-    @Id @GeneratedValue(strategy = GenerationType.AUTO)
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private int taskId;
     @Column(name = "title")
     private String title;

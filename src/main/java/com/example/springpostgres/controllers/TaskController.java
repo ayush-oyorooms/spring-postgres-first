@@ -2,13 +2,26 @@ package com.example.springpostgres.controllers;
 
 import com.example.springpostgres.entities.TaskEntity;
 import com.example.springpostgres.services.TaskService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import org.redisson.Redisson;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.cache.CacheProperties;
+import org.springframework.cache.Cache;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.cache.RedisCache;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import redis.clients.jedis.JedisPooled;
+import redis.clients.jedis.json.RedisJsonCommands;
+import redis.clients.jedis.search.FTCreateParams;
+import redis.clients.jedis.search.IndexDataType;
+import redis.clients.jedis.search.schemafields.NumericField;
+import redis.clients.jedis.search.schemafields.TextField;
 
 import java.util.*;
 
@@ -24,6 +37,9 @@ public class TaskController {
     @Autowired
     TaskService taskService;
 
+    @Autowired
+    RedisTemplate redisTemplate;
+
     @GetMapping()
     @ResponseBody()
     public List<TaskEntity> getTaskEntityList() {
@@ -33,7 +49,7 @@ public class TaskController {
     @GetMapping("/filter")
     @ResponseBody()
     public List<TaskEntity> getTasksWithUserIdMoreThan(@RequestParam Integer userId) {
-        System.out.println("yoooooooooooooooooooooooooooooooo");
+        System.out.println("_______________-------------------______________---------__________---------___________---");
         return taskService.getTasksWithIdMoreThan(userId);
     }
 
@@ -42,6 +58,7 @@ public class TaskController {
             -H "Content-Type: application/json" \
             -d '{"username": "test_uname", "password": "testpswd", "email": "test_uname@tmpmail.com", "created_at": "2023-06-04"}'
     */
+    @Cacheable(value = "saaaample")
     @GetMapping("/bruh")
     public String bruh(@RequestParam String word) {
         System.out.println("yoooooooooooooooooooooooooooooooo");
@@ -50,39 +67,36 @@ public class TaskController {
     }
 
     @PostMapping("new")
-//    @CachePut(value = "TaskEntity", key = "#taskEntity.taskId")
     public TaskEntity addNewTask(@RequestBody TaskEntity taskEntity) {
         return taskService.addNewTask(taskEntity);
     }
 
-    @Cacheable(value = "vedansh", key = "#taskId")
     @GetMapping("{id}")
-    public ResponseEntity<TaskEntity> getTaskWithId(@PathVariable("id") Integer taskId) {
-        System.out.println("-------------------find--------------");
+    public TaskEntity getTaskWithId(@PathVariable("id") Integer taskId) {
+        System.out.println("******************************************888FIND******************************");
         Optional<TaskEntity> taskEntity = taskService.getTaskById(taskId);
-        if (taskEntity.isPresent()) {
-            return new ResponseEntity<>(taskEntity.get(), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        System.out.println(taskEntity);
+        return taskEntity.get();
     }
 
     // Return a custom response that deletion unsuccessful because of id not being present
-    @CacheEvict(value = "tasks", allEntries = true)
+    @CacheEvict(value = "taskId", key = "#taskId")
     @DeleteMapping("{id}")
-    public ResponseEntity<Object> deleteTaskWithId(@PathVariable("id") Integer userId) {
-        Optional<TaskEntity> taskEntity = taskService.getTaskById(userId);
+    public ResponseEntity<Object> deleteTaskWithId(@PathVariable("id") Integer taskId) {
+        String rtid = "taskId::" + taskId;
+        System.out.println(rtid);
         Map<String, Object> resMap = new HashMap<String, Object>();
-        HttpStatus httpStatus;
+        HttpStatus httpStatus = HttpStatus.OK;
+        Optional<TaskEntity> taskEntity = taskService.getTaskById(taskId);
+        System.out.println(taskEntity.isPresent());
         if (taskEntity.isPresent()) {
-            taskService.deleteTaskById(userId);
-            resMap.put("deletion_status", "Success");
-            resMap.put("deleted_user_id", userId);
-            httpStatus = HttpStatus.OK;
+            taskService.deleteTaskById(taskId);
+            resMap.put("deletion_status", "success");
+            resMap.put("deleted task with id", taskId);
         } else {
             // reason pehle aata json mein deletion_status se
             resMap.put("deletion_status", "Failed");
-            resMap.put("reason", "User with provided userid not found");
+            resMap.put("reason", "Task with provided userid not found");
             httpStatus = HttpStatus.NOT_FOUND;
         }
         return new ResponseEntity<>(resMap, httpStatus);

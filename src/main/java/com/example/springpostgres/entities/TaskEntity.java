@@ -1,6 +1,9 @@
 package com.example.springpostgres.entities;
 
+import com.fasterxml.jackson.annotation.*;
 import lombok.Data;
+import org.springframework.data.redis.core.RedisHash;
+import org.springframework.data.redis.core.index.Indexed;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -9,23 +12,31 @@ import java.sql.Date;
 //@Data
 @Entity
 @Table(name="Tasks")
-public class TaskEntity {
+@RedisHash("TaskEntity_redis_key")
+public class TaskEntity implements Serializable {
+    private static final long serialVersionUID = 7156526077883281623L;
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int taskId;
     @Column(name = "title")
+    @Indexed
+    @JsonProperty("title")
     private String title;
 
     @Column(name = "description")
+    @JsonProperty("description")
     private String description;
 
     @Column(name = "created_on")
+    @JsonProperty("createdOn")
     private Date createdOn;
 
     @Column(name = "deadline")
+    @JsonProperty("deadline")
     private Date deadline;
 
     @Column(name = "completed")
+    @JsonProperty("isCompleted")
     private Boolean isCompleted;
 
     public TaskEntity() { }

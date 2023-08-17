@@ -48,22 +48,22 @@ public class TaskController {
 
     @GetMapping("/filter")
     @ResponseBody()
-    public List<TaskEntity> getTasksWithUserIdMoreThan(@RequestParam Integer userId) {
+    public List<TaskEntity> getTasksWithUserIdMoreThan(@RequestParam Integer taskId) {
         System.out.println("_______________-------------------______________---------__________---------___________---");
-        return taskService.getTasksWithIdMoreThan(userId);
+        return taskService.getTasksWithIdMoreThan(taskId);
     }
 
     /*
     curl -s -X POST localhost:8080/accounts/new \
             -H "Content-Type: application/json" \
-            -d '{"username": "test_uname", "password": "testpswd", "email": "test_uname@tmpmail.com", "created_at": "2023-06-04"}'
+            -d '{"taskname": "test_uname", "password": "testpswd", "email": "test_uname@tmpmail.com", "created_at": "2023-06-04"}'
     */
     @Cacheable(value = "saaaample")
     @GetMapping("/bruh")
     public String bruh(@RequestParam String word) {
         System.out.println("yoooooooooooooooooooooooooooooooo");
         return word;
-//        return accountService.getAccountsWithIdMoreThan(userId);
+//        return accountService.getAccountsWithIdMoreThan(taskId);
     }
 
     @PostMapping("new")
@@ -83,8 +83,6 @@ public class TaskController {
     @CacheEvict(value = "taskId", key = "#taskId")
     @DeleteMapping("{id}")
     public ResponseEntity<Object> deleteTaskWithId(@PathVariable("id") Integer taskId) {
-        String rtid = "taskId::" + taskId;
-        System.out.println(rtid);
         Map<String, Object> resMap = new HashMap<String, Object>();
         HttpStatus httpStatus = HttpStatus.OK;
         Optional<TaskEntity> taskEntity = taskService.getTaskById(taskId);
@@ -96,26 +94,25 @@ public class TaskController {
         } else {
             // reason pehle aata json mein deletion_status se
             resMap.put("deletion_status", "Failed");
-            resMap.put("reason", "Task with provided userid not found");
+            resMap.put("reason", "Task with provided taskid not found");
             httpStatus = HttpStatus.NOT_FOUND;
         }
         return new ResponseEntity<>(resMap, httpStatus);
     }
 
     @PutMapping("{id}")
-    @CachePut
-    public ResponseEntity<Object> updateTaskWithId(@PathVariable("id") Integer userId, @RequestBody TaskEntity taskEntity) {
-        Optional<TaskEntity> taskEntityOptional = taskService.getTaskById(userId);
+    public ResponseEntity<Object> updateTaskWithId(@PathVariable("id") Integer taskId, @RequestBody TaskEntity taskEntity) {
+        Optional<TaskEntity> taskEntityOptional = taskService.getTaskById(taskId);
         Map<String, Object> resMap = new HashMap<>();
         HttpStatus httpStatus;
         if (taskEntityOptional.isPresent()) {
             taskService.updateTaskWithId(taskEntityOptional.get(), taskEntity);
             resMap.put("update status", "Success");
-            resMap.put("updated userId", userId);
+            resMap.put("updated taskId", taskId);
             httpStatus = HttpStatus.OK;
         } else {
             resMap.put("update_status", "Failed");
-            resMap.put("reason", "User with provided userId does not exist");
+            resMap.put("reason", "User with provided taskId does not exist");
             resMap.put("alphabetically", "should be first");
             httpStatus = HttpStatus.NOT_FOUND;
         }

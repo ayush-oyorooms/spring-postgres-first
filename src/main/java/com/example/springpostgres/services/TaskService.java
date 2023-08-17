@@ -64,8 +64,8 @@ public class TaskService {
         taskRepository.deleteById(taskId);
     }
 
-//    @CachePut()
-    public ResponseEntity<TaskEntity> updateTaskWithId(TaskEntity taskEntityData, TaskEntity taskEntity) {
+    @CachePut(value = "taskId", key = "#taskEntity.getTaskId()")
+    public TaskEntity updateTaskWithId(TaskEntity taskEntityData, TaskEntity taskEntity) {
         if (taskEntity.getTitle() != null) {
             taskEntityData.setTitle(taskEntity.getTitle());
         }
@@ -75,6 +75,10 @@ public class TaskService {
         if (taskEntity.getDescription() != null) {
             taskEntityData.setDescription(taskEntity.getDescription());
         }
-        return new ResponseEntity<>(taskRepository.save(taskEntityData), HttpStatus.OK);
+//        callbackToReturnRespEntity(taskEntityData);
+        return taskEntityData;
+    }
+    private ResponseEntity<TaskEntity> callbackToReturnRespEntity(TaskEntity taskEntity) {
+        return new ResponseEntity<>(taskRepository.save(taskEntity), HttpStatus.OK);
     }
 }
